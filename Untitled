@@ -1,0 +1,113 @@
+Create a complete React + TailwindCSS accounting dashboard app called "Numeris".
+
+## Stack
+- React 18 with Vite
+- TailwindCSS v3
+- Recharts for charts
+- React Router v6 for navigation
+- lucide-react for icons
+
+## File structure
+src/
+  components/
+    Sidebar.jsx
+    Topbar.jsx
+    MetricCard.jsx
+    BillsChart.jsx
+    DeadlinesList.jsx
+    QuickActions.jsx
+    InvoicesTable.jsx
+  pages/
+    Dashboard.jsx
+  data/
+    mockData.js
+  App.jsx
+  main.jsx
+
+## Sidebar (dark navy #1a2332)
+- Logo: blue rounded square "N" + "Numeris" text
+- Nav sections with icons (lucide-react):
+  - Dashboard (LayoutDashboard)
+  - Clients (Users)
+  - FINANCE: Invoices (FileText), Bills (ClipboardList), Payments (CreditCard), Exports (Download)
+  - WORK: Projects (FolderOpen), Time Tracking (Clock)
+  - REPORTS: Accounting (BookOpen), Reports (BarChart2)
+- Active state: blue left border + light blue bg tint
+- Bottom: user avatar circle + name
+- Collapses to icons only on mobile
+
+## Topbar
+- Page title left
+- Right: bell icon, help icon, "Upgrade Plan" blue button
+- White bg, bottom border
+
+## Dashboard page sections
+
+### 1. Metric Cards (4-column grid)
+| Label | Value | Change |
+|---|---|---|
+| Total Revenue | $84,320 | ↑ 12.4% |
+| Outstanding | $7,429 | 12 awaiting |
+| Overdue | $3,187 | 11 bills |
+| Net Profit | $31,540 | ↑ 8.1% |
+
+### 2. Bills to Pay card (left 2/3)
+- Two large numbers: Awaiting ($7,429.21 blue) and Overdue ($3,187.21 red)
+- Grouped bar chart using Recharts BarChart
+- X-axis: Older, This Week, Apr 5-11, Apr 12-18, From Apr 19
+- Values: 7429, 1329, 387, 1597, 0
+- Colors: slate for Older, blue for This Week, light blue for Apr 5-11, orange for Apr 12-18, gray for future
+- "View all bills" button
+
+### 3. Upcoming Deadlines card (right 1/3)
+- List of 4 items, each with:
+  - Colored month pill + day number
+  - Deadline name + description
+  - Status dot (orange = urgent, gray = upcoming)
+- Data:
+  - JAN 12 - GST Return - Oct 01 2025, Due Jan 31 (orange)
+  - MAY 4 - GST Return - Due by May 4 (orange)
+  - MAY 5 - GST Return - Due by May 5 (gray)
+  - OCT 26 - Provisional Tax - Due Oct 26 (gray)
+
+### 4. Quick Actions (3 cards)
+- Create Invoice → "New Invoice" button
+- Log Expense → "Log Expense" button
+- Sync Bank Feed → "Connect Now" button
+- Each card: icon, name, description, primary CTA button (bg #1e40af)
+
+### 5. Recent Invoices table
+- Tab filters: All | Paid | Pending | Overdue
+- Columns: Client, Invoice ID + Date, Status badge, Amount
+- Mock data (8 rows):
+  [
+    { client: "Acme Corp", id: "INV-0042", date: "Apr 1 2026", status: "paid", amount: 3200 },
+    { client: "Blue Sky Media", id: "INV-0041", date: "Mar 28 2026", status: "pending", amount: 1450 },
+    { client: "Horizon Group", id: "INV-0040", date: "Mar 20 2026", status: "overdue", amount: 780 },
+    { client: "Starfield Solutions", id: "INV-0039", date: "Mar 15 2026", status: "paid", amount: 5100 },
+    { client: "Nova Dynamics", id: "INV-0038", date: "Mar 10 2026", status: "pending", amount: 2300 },
+    { client: "Peak Ventures", id: "INV-0037", date: "Mar 5 2026", status: "paid", amount: 990 },
+    { client: "Clearpath Ltd", id: "INV-0036", date: "Feb 28 2026", status: "overdue", amount: 4400 },
+    { client: "Summit Co", id: "INV-0035", date: "Feb 20 2026", status: "paid", amount: 1750 }
+  ]
+- Status badges: green bg/text for paid, yellow for pending, red for overdue
+- Tab click filters the table (useState)
+
+## Design tokens
+- Sidebar bg: #1a2332
+- Active nav: border-left #3b82f6, bg rgba(59,130,246,0.12)
+- Primary button: #3b82f6
+- Card: white bg, border border-gray-100, rounded-xl, shadow-sm
+- Page bg: #f8fafc
+- Typography: text-gray-900 headings, text-gray-500 labels
+- Paid: bg-green-100 text-green-800
+- Pending: bg-yellow-100 text-yellow-800
+- Overdue: bg-red-100 text-red-800
+
+## Behavior
+- Sidebar nav items highlight on click (useState for activePage)
+- Invoice table tabs filter rows by status
+- All cards and buttons are hover-interactive
+- Fully responsive: sidebar hidden on mobile, shown via hamburger toggle
+
+Generate all files completely with no placeholders.
