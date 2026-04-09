@@ -1,16 +1,69 @@
-# React + Vite
+# Numeris
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Accounting dashboard monorepo: **React (Vite)** frontend and **Express + Prisma** backend.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Node.js** 18+
+- **SQLite** is the default (`backend/prisma/dev.db`, created by `migrate dev`). You do not need Docker or PostgreSQL for local development.
 
-## React Compiler
+## Backend setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+cd backend
+cp .env.example .env   # default DATABASE_URL is SQLite file:./dev.db
+npm install
+npx prisma migrate dev
+npm run seed           # loads sample data
+npm run dev            # starts API on port 3000 (or PORT in .env)
+```
 
-## Expanding the ESLint configuration
+The API listens at **http://localhost:3000** by default.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+**Demo login (after seed):** `thomas@numeris.app` / `numeris123`
+
+CI / production apply: `npx prisma migrate deploy` then `npm run seed`.
+
+## Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev            # http://localhost:5173 — proxies /api to the backend
+```
+
+Set `VITE_API_BASE_URL` only if the API is not proxied (see `frontend/.env.example`).
+
+## Project layout
+
+```
+backend/
+  prisma/
+    schema.prisma
+    seed.js
+    migrations/
+  src/
+    index.js
+    routes/
+      index.js
+      *.routes.js
+    middleware/
+    lib/
+frontend/
+  src/
+```
+
+## CORS
+
+The API allows **http://localhost:5173** and **http://127.0.0.1:5173** with credentials.
+
+## Scripts (backend)
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | API with `--watch` |
+| `npm start` | API without watch |
+| `npm run seed` | Load sample data |
+| `npx prisma migrate dev` | Dev migrations |
+| `npx prisma migrate deploy` | Apply migrations (CI/prod) |
+| `npx prisma studio` | Database GUI |

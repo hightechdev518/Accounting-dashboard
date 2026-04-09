@@ -1,0 +1,248 @@
+// Numeris finance dashboard — Prisma + SQLite (see README to use PostgreSQL instead)
+// Passwords must be stored hashed (e.g. bcrypt); the field is named passwordHash in the schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ——— Enums ———
+
+enum UserRole {
+  USER
+  ADMIN
+  ACCOUNTANT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+}
+
+enum BillStatus {
+  AWAITING
+  OVERDUE
+  PAID
+}
+
+enum ProjectStatus {
+  PLANNED
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaxDeadlineStatus {
+  PENDING
+  COMPLETED
+}
+
+// ——— Models ———
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(USER)
+  createdAt    DateTime  @default(now())
+
+  clients        Client[]
+  invoices       Invoice[]
+  bills          Bill[]
+  projects       Project[]
+  timeEntries    TimeEntry[]
+  expenses       Expense[]
+  taxDeadlines   TaxDeadline[]
+  exportJobs     ExportJob[]
+  refreshTokens  RefreshToken[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  invoices Invoice[]
+  bills    Bill[]
+  projects Project[]
+
+  @@index([userId])
+  @@index([userId, name])
+  @@index([email])
+}
+
+model Invoice {
+  id        String         @id @default(cuid())
+  number    String
+  clientId  String
+  client    Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    InvoiceStatus  @default(DRAFT)
+  amount    Decimal
+  dueDate   DateTime?
+  issuedAt  DateTime       @default(now())
+  createdAt DateTime       @default(now())
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@unique([userId, number])
+  @@index([userId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([issuedAt])
+  @@index([createdAt])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal
+  rate        Decimal
+  amount      Decimal
+
+  @@index([invoiceId])
+}
+
+model Bill {
+  id        String     @id @default(cuid())
+  title     String
+  clientId  String
+  client    Client     @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    BillStatus @default(AWAITING)
+  amount    Decimal
+  dueDate   DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount    Decimal
+  method    String
+  paidAt    DateTime @default(now())
+  note      String?
+
+  @@index([invoiceId])
+  @@index([paidAt])
+}
+
+model Project {
+  id        String         @id @default(cuid())
+  name      String
+  clientId  String?
+  client    Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    ProjectStatus  @default(ACTIVE)
+  budget    Decimal?
+  deadline  DateTime?
+  createdAt DateTime       @default(now())
+
+  timeEntries TimeEntry[]
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([status])
+  @@index([deadline])
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description String?
+  hours       Decimal
+  date        DateTime
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([date])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String
+  amount      Decimal
+  description String?
+  date        DateTime
+
+  @@index([userId])
+  @@index([category])
+  @@index([date])
+}
+
+model TaxDeadline {
+  id        String              @id @default(cuid())
+  userId    String
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  dueDate   DateTime
+  period    String
+  status    TaxDeadlineStatus   @default(PENDING)
+
+  @@index([userId])
+  @@index([dueDate])
+  @@index([status])
+  @@index([period])
+}
+
+model ExportJob {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  entity    String
+  status    String
+  fileUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}

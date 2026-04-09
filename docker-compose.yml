@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: numeris
+      POSTGRES_PASSWORD: numeris
+      POSTGRES_DB: numeris
+    volumes:
+      - numeris_pg:/var/lib/postgresql/data
+
+volumes:
+  numeris_pg:
